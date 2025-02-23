@@ -13,6 +13,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Modify api.js (replace BASE_URL)
+        run: |
+          # Use sed to replace "BASE_URL" in api.js with a new value
+          sed -i 's|BASE_URL.*|BASE_URL = "https://uccelliapp.duckdns.org/api";|' ./js/api.js
+
       - name: Deploy to local Nginx directory
         run: |
           # Rsync or cp files directly to the Nginx web directory
