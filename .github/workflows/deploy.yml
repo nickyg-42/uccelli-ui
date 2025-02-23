@@ -1,0 +1,27 @@
+name: Deploy to Raspberry Pi (Locally)
+
+on:
+  push:
+    branches:
+      - main  # Trigger deploy on push to main branch
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # This uses your self-hosted runner on the local machine
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build the project (optional)
+        run: |
+          npm install
+
+      - name: Deploy to local Nginx directory
+        run: |
+          # Rsync or cp files directly to the Nginx web directory
+          sudo rsync -avz --delete --exclude .git --exclude node_modules ./ /var/www/html/
+
+      - name: Restart Nginx (optional)
+        run: |
+          sudo systemctl reload nginx

@@ -2,6 +2,7 @@ class UI {
     static currentUser = null;
     static currentGroupId = null;
     static calendar = null;
+    static loadingCount = 0;
 
     static init() {
         // Check if user is logged in
@@ -1047,11 +1048,15 @@ class UI {
     }
 
     static showLoading() {
+        this.loadingCount++;
         document.getElementById('loadingSpinner').classList.remove('hidden');
     }
 
     static hideLoading() {
-        document.getElementById('loadingSpinner').classList.add('hidden');
+        this.loadingCount = Math.max(0, this.loadingCount - 1);
+        if (this.loadingCount === 0) {
+            document.getElementById('loadingSpinner').classList.add('hidden');
+        }
     }
 
     static clearCalendar() {
