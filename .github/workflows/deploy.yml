@@ -16,7 +16,7 @@ jobs:
       - name: Deploy to local Nginx directory
         run: |
           # Rsync or cp files directly to the Nginx web directory
-          sudo rsync -avz --delete --exclude .git --exclude node_modules ./ /var/www/html/
+          sudo rsync -avz --delete --exclude .git --exclude node_modules ./ /var/www/uccelli-ui/
 
       - name: Restart Nginx (optional)
         run: |
