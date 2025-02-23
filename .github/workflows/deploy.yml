@@ -16,7 +16,7 @@ jobs:
       - name: Modify api.js (replace BASE_URL)
         run: |
           # Use sed to replace "BASE_URL" in api.js with a new value
-          sed -i '0,/BASE_URL/ s|BASE_URL.*|BASE_URL = "https://uccelliapp.duckdns.org/api",|' ./js/api.js
+          sed -i '0,/BASE_URL/ s|BASE_URL.*|BASE_URL: "https://uccelliapp.duckdns.org/api",|' ./js/api.js
 
       - name: Deploy to local Nginx directory
         run: |
