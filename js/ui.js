@@ -319,9 +319,9 @@ class UI {
             "jessicaagrimaldi@gmail.com",
             "noahgrimaldi1@gmail.com",
             "josiahgrimaldi@gmailcom",
-	    "john.grimaldi@gmail.com",
-	    "dominicgrimaldi1738@gmail.com",
-	    "karengrimaldi@gmail.com",
+            "john.grimaldi@gmail.com",
+            "dominicgrimaldi1738@gmail.com",
+            "karengrimaldi@gmail.com",
         ]
         if (!validEmails.includes(email)) {
             return false;
