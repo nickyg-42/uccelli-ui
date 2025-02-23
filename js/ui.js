@@ -318,7 +318,7 @@ class UI {
             "fiona.tetreault@gmail.com",
             "jessicaagrimaldi@gmail.com",
             "noahgrimaldi1@gmail.com",
-            "josiahgrimaldi@gmailcom",
+            "josiahgrimaldi@gmail.com",
             "john.grimaldi@gmail.com",
             "dominicgrimaldi1738@gmail.com",
             "karengrimaldi@gmail.com",
