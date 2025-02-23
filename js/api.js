@@ -1,6 +1,7 @@
 // Base API configuration
 const API = {
-    BASE_URL: 'https://uccelliapp.duckdns.org/api', // Change this to your Go backend URL
+    BASE_URL: 'http://127.0.0.1:5000/api',
+    //BASE_URL: 'https://uccelliapp.duckdns.org/api', // Change this to your Go backend URL
     
     // Helper method for making API calls
     async fetch(endpoint, options = {}) {

@@ -566,8 +566,8 @@ class UI {
             this.historicEvents = historicEvents;
             
             // Update the lists with paginated data
-            this.updateEventsList('upcoming');
-            this.updateEventsList('historic');
+            await this.updateEventsList('upcoming');
+            await this.updateEventsList('historic');
 
             // Update calendar if it exists
             if (this.calendar) {
@@ -581,7 +581,7 @@ class UI {
         }
     }
 
-    static updateEventsList(type) {
+    static async updateEventsList(type) {
         const events = type === 'upcoming' ? this.upcomingEvents : this.historicEvents;
         const currentPage = type === 'upcoming' ? this.currentUpcomingPage : this.currentHistoricPage;
         const listElement = document.getElementById(`${type}EventsList`);
@@ -598,6 +598,10 @@ class UI {
             return;
         }
 
+        // Create all event cards
+        const eventCardsPromises = paginatedEvents.map(event => this.createEventCard(event));
+        const eventCards = await Promise.all(eventCardsPromises);
+
         const paginationHtml = `
             <div class="pagination">
                 <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="UI.changePage('${type}', ${currentPage - 1})">←</button>
@@ -606,21 +610,16 @@ class UI {
             </div>
         `;
 
-        listElement.innerHTML = `
-            <div class="events-list">
-                ${paginatedEvents.map(event => this.createEventCard(event)).join('')}
-            </div>
-            ${paginationHtml}
-        `;
+        listElement.innerHTML = eventCards.join('') + paginationHtml;
     }
 
-    static changePage(type, newPage) {
+    static async changePage(type, newPage) {
         if (type === 'upcoming') {
             this.currentUpcomingPage = newPage;
         } else {
             this.currentHistoricPage = newPage;
         }
-        this.updateEventsList(type);
+        await this.updateEventsList(type);
     }
 
     static handleEventsLoadError() {
@@ -856,7 +855,7 @@ class UI {
         });
     }
 
-    static createEventCard(event) {
+    static async createEventCard(event) {
         const userSession = Auth.getUserSession();
         
         // Show delete button if user created the event or is an admin
@@ -871,19 +870,42 @@ class UI {
             ? `<button class="delete-event-btn" onclick="UI.deleteEvent(${event.id})">&times;</button>`
             : '';
 
+        // Fetch creator's information
+        let creatorName = 'Unknown';
+        try {
+            const creator = await UsersManager.getUser(event.created_by_id);
+            if (creator) {
+                creatorName = creator.username || creator.name || 'Unknown';
+            }
+        } catch (error) {
+            console.error('Error fetching event creator:', error);
+        }
+
         return `
             <div class="event-card" data-event-id="${event.id}">
                 <div class="event-header">
                     <h3>${event.name}</h3>
                     ${deleteButton}
                 </div>
+                <p class="event-creator">Created by: ${creatorName}</p>
                 <p>${event.description}</p>
                 <div class="event-times">
-                    <span>Start: ${new Date(event.start_time).toLocaleString()}</span>
-                    <span>End: ${new Date(event.end_time).toLocaleString()}</span>
+                    <span>Start: ${this.formatDateTime(event.start_time)}</span>
+                    <span>End: ${this.formatDateTime(event.end_time)}</span>
                 </div>
             </div>
         `;
+    }
+
+    static formatDateTime(date) {
+        return new Date(date).toLocaleString(undefined, {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
     }
 
     static async deleteEvent(eventId) {
@@ -979,14 +1001,23 @@ class UI {
         });
     }
 
-    static async getCalendarEvents() {
+    static async getCalendarEvents(info, successCallback, failureCallback) {
         try {
-            const groupId = localStorage.getItem('group_id');
-            const events = await EventsManager.getGroupEvents(groupId);
-            return this.formatEventsForCalendar(events);
+            const urlParams = new URLSearchParams(window.location.search);
+            const groupId = urlParams.get('groupId');
+            if (!groupId) {
+                this.clearCalendar();
+                successCallback([]);
+                return;
+            }
+            
+            const events = await EventsManager.getGroupEvents(groupId) || [];
+            const formattedEvents = this.formatEventsForCalendar(events);
+            successCallback(formattedEvents);
         } catch (error) {
             console.error('Error fetching calendar events:', error);
-            return [];
+            this.clearCalendar();
+            failureCallback(error);
         }
     }
 
@@ -996,8 +1027,23 @@ class UI {
             title: event.name,
             start: event.start_time,
             end: event.end_time,
-            description: event.description
+            description: `${event.description}\n\nStart: ${this.formatDateTime(event.start_time)}\nEnd: ${this.formatDateTime(event.end_time)}`
         }));
+    }
+
+    static formatDateTime(dateString) {
+        const date = new Date(dateString);
+        const monthNames = ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+        const day = date.getDate();
+        const monthIndex = date.getMonth();
+        const year = date.getFullYear();
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const formattedDate = `${monthNames[monthIndex]} ${day}, ${year} ${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+        return formattedDate;
     }
 
     static showLoading() {
@@ -1064,22 +1110,67 @@ class UI {
         try {
             const groups = await GroupsManager.getAllGroups();
             const groupSelect = document.getElementById('adminGroupSelect');
+            const adminGroupSelectForAdmin = document.getElementById('adminGroupSelectForAdmin');
+            const adminGroupSelectForRemove = document.getElementById('adminGroupSelectForRemove');
             
-            groupSelect.innerHTML = `
+            // Handle case when no groups exist
+            if (!groups || groups.length === 0) {
+                const noGroupsOption = '<option value="">No groups available</option>';
+                groupSelect.innerHTML = noGroupsOption;
+                adminGroupSelectForAdmin.innerHTML = noGroupsOption;
+                adminGroupSelectForRemove.innerHTML = noGroupsOption;
+                
+                // Disable the selects
+                groupSelect.disabled = true;
+                adminGroupSelectForAdmin.disabled = true;
+                adminGroupSelectForRemove.disabled = true;
+                
+                // Disable related user select elements
+                const userSelect = document.getElementById('adminUserSelect');
+                const userSelectForAdmin = document.getElementById('userSelectForAdmin');
+                const userSelectForRemove = document.getElementById('userSelectForRemove');
+                if (userSelect) userSelect.disabled = true;
+                if (userSelectForAdmin) userSelectForAdmin.disabled = true;
+                if (userSelectForRemove) userSelectForRemove.disabled = true;
+                
+                return;
+            }
+            
+            // Enable the selects if we have groups
+            groupSelect.disabled = false;
+            adminGroupSelectForAdmin.disabled = false;
+            adminGroupSelectForRemove.disabled = false;
+            
+            const groupsHtml = `
                 <option value="">Select a group...</option>
                 ${groups.map(group => `
                     <option value="${group.id}">${group.name}</option>
                 `).join('')}
             `;
 
-            const adminGroupSelectForAdmin = document.getElementById('adminGroupSelectForAdmin');
-            adminGroupSelectForAdmin.innerHTML = groupSelect.innerHTML;
-
-            const adminGroupSelectForRemove = document.getElementById('adminGroupSelectForRemove');
-            adminGroupSelectForRemove.innerHTML = groupSelect.innerHTML;
+            groupSelect.innerHTML = groupsHtml;
+            adminGroupSelectForAdmin.innerHTML = groupsHtml;
+            adminGroupSelectForRemove.innerHTML = groupsHtml;
+            
         } catch (error) {
             console.error('Failed to load groups:', error);
-            alert('Failed to load groups');
+            const errorMessage = error.message || 'Failed to load groups';
+            alert(errorMessage);
+            
+            // Set error state in the UI
+            const noGroupsError = '<option value="">Error loading groups</option>';
+            const selects = [
+                document.getElementById('adminGroupSelect'),
+                document.getElementById('adminGroupSelectForAdmin'),
+                document.getElementById('adminGroupSelectForRemove')
+            ];
+            
+            selects.forEach(select => {
+                if (select) {
+                    select.innerHTML = noGroupsError;
+                    select.disabled = true;
+                }
+            });
         }
     }
 
@@ -1106,6 +1197,58 @@ class UI {
         } catch (error) {
             console.error('Failed to load users:', error);
             alert('Failed to load users');
+        }
+    }
+
+    static async loadNonAdminMembers(groupId) {
+        try {
+            const users = await GroupsManager.getNonAdminMembers(groupId);
+            const userSelect = document.getElementById('userSelectForAdmin');
+            
+            if (!users || users.length === 0) {
+                userSelect.innerHTML = '<option value="">No available users</option>';
+                userSelect.disabled = true;
+                return;
+            }
+
+            userSelect.innerHTML = `
+                <option value="">Select a user...</option>
+                ${users.map(user => `
+                    <option value="${user.id}">
+                        ${user.username}${user.email ? ` (${user.email})` : ''}
+                    </option>
+                `).join('')}
+            `;
+            userSelect.disabled = false;
+        } catch (error) {
+            console.error('Failed to load users:', error);
+            alert('Failed to load users');
+        }
+    }
+
+    static async loadAdminMembers(groupId) {
+        try {
+            const users = await GroupsManager.getAdminMembers(groupId);
+            const userSelect = document.getElementById('userSelectForRemove');
+            
+            if (!users || users.length === 0) {
+                userSelect.innerHTML = '<option value="">No admins available</option>';
+                userSelect.disabled = true;
+                return;
+            }
+
+            userSelect.innerHTML = `
+                <option value="">Select an admin...</option>
+                ${users.map(user => `
+                    <option value="${user.id}">
+                        ${user.username}${user.email ? ` (${user.email})` : ''}
+                    </option>
+                `).join('')}
+            `;
+            userSelect.disabled = false;
+        } catch (error) {
+            console.error('Failed to load admins:', error);
+            alert('Failed to load admins');
         }
     }
 
@@ -1181,58 +1324,6 @@ class UI {
                 console.error('Failed to leave group:', error);
                 alert('Failed to leave group: ' + error.message);
             }
-        }
-    }
-
-    static async loadNonAdminMembers(groupId) {
-        try {
-            const users = await GroupsManager.getNonAdminMembers(groupId);
-            const userSelect = document.getElementById('userSelectForAdmin');
-            
-            if (!users || users.length === 0) {
-                userSelect.innerHTML = '<option value="">No available users</option>';
-                userSelect.disabled = true;
-                return;
-            }
-
-            userSelect.innerHTML = `
-                <option value="">Select a user...</option>
-                ${users.map(user => `
-                    <option value="${user.id}">
-                        ${user.username}${user.email ? ` (${user.email})` : ''}
-                    </option>
-                `).join('')}
-            `;
-            userSelect.disabled = false;
-        } catch (error) {
-            console.error('Failed to load users:', error);
-            alert('Failed to load users');
-        }
-    }
-
-    static async loadAdminMembers(groupId) {
-        try {
-            const users = await GroupsManager.getAdminMembers(groupId);
-            const userSelect = document.getElementById('userSelectForRemove');
-            
-            if (!users || users.length === 0) {
-                userSelect.innerHTML = '<option value="">No admins available</option>';
-                userSelect.disabled = true;
-                return;
-            }
-
-            userSelect.innerHTML = `
-                <option value="">Select an admin...</option>
-                ${users.map(user => `
-                    <option value="${user.id}">
-                        ${user.username}${user.email ? ` (${user.email})` : ''}
-                    </option>
-                `).join('')}
-            `;
-            userSelect.disabled = false;
-        } catch (error) {
-            console.error('Failed to load admins:', error);
-            alert('Failed to load admins');
         }
     }
 
