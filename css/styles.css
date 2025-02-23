@@ -1,0 +1,714 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #2c3e50;
+    --primary-light: #34495e;
+    --secondary: #95a5a6;
+    --background: #f8f9fa;
+    --white: #ffffff;
+    --error: #e74c3c;
+    --success: #27ae60;
+    --border: #dee2e6;
+    --text: #2c3e50;
+    --text-light: #6c757d;
+    --shadow: rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: var(--text);
+    background-color: var(--background);
+}
+
+/* Navigation */
+.navbar {
+    background-color: var(--white);
+    color: var(--text);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-brand {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-logo {
+    height: auto;
+    width: 2.5rem;
+    vertical-align: middle;
+}
+
+.nav-items {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Buttons */
+button, .nav-item {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary);
+    color: var(--white);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    background-color: var(--primary-light);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px var(--shadow);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+button.secondary {
+    background-color: var(--secondary);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Forms */
+.auth-form {
+    background-color: var(--white);
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px var(--shadow);
+}
+
+.auth-form h2 {
+    margin-bottom: 1.5rem;
+    color: var(--primary);
+    text-align: center;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* Main content */
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.content-section {
+    background-color: var(--white);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px var(--shadow);
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Group selector */
+.group-selector {
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px var(--shadow);
+}
+
+.group-controls {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.group-controls select,
+#joinGroupBtn {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.group-controls select {
+    height: 42px;
+}
+
+.select-wrapper {
+    flex: 1;
+}
+
+.secondary-button {
+    padding: 0.8rem 1rem;
+    background-color: var(--background);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.secondary-button:hover {
+    background-color: var(--border);
+}
+
+/* Events */
+.event-card {
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+}
+
+.event-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px var(--shadow);
+}
+
+.event-card h3 {
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.delete-event-btn {
+    background: none;
+    color: #000;
+    padding: 0.3rem;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-event-btn:hover {
+    opacity: 0.7;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal:not(.hidden) {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--white);
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-header h2 {
+    margin: 0;
+}
+
+.group-name {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+/* Empty and Error States */
+.empty-state, .error-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    border-radius: 12px;
+    margin: 1rem 0;
+    font-size: 0.95rem;
+}
+
+.empty-state {
+    color: var(--text-light);
+    border: 2px dashed var(--border);
+    background-color: var(--background);
+}
+
+.error-state {
+    color: var(--error);
+    border: 2px solid var(--error);
+    background-color: #fef2f2;
+}
+
+/* Error message */
+.error-message {
+    color: var(--error);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    background-color: #fef2f2;
+}
+
+/* Utility classes */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 1rem;
+    }
+
+    main {
+        padding: 1rem;
+    }
+
+    .auth-form {
+        margin: 1rem;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 1rem;
+    }
+}
+
+.user-greeting {
+    color: var(--text);
+    font-size: 0.9rem;
+    margin-right: .5rem;
+}
+
+/* Remove any button-like styling that might have been applied */
+#userEmail {
+    font-weight: 500;  /* Make the username slightly bolder */
+    color: var(--primary);
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+    background: none;
+    color: var(--text-light);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.tab-btn:hover {
+    background-color: var(--background);
+    color: var(--primary);
+}
+
+.tab-btn.active {
+    background-color: var(--primary);
+    color: var(--white);
+}
+
+.tab-content {
+    position: relative;
+}
+
+.tab-pane {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.tab-pane.active {
+    display: block;
+    opacity: 1;
+}
+
+/* View Toggle */
+.view-toggle {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.view-btn {
+    background: var(--background);
+    color: var(--text);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+}
+
+.view-btn.active {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.view-content {
+    display: none;
+}
+
+.view-content.active {
+    display: block;
+}
+
+/* Calendar Styles */
+#calendarView {
+    padding: 1rem;
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px var(--shadow);
+}
+
+.fc-event {
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+
+.fc-event-title {
+    font-weight: 500;
+}
+
+.fc-toolbar-title {
+    font-size: 1.2rem !important;
+    color: var(--primary);
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 1rem 0;
+}
+
+.pagination-btn {
+    padding: 0.5rem 1rem;
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.8rem;
+    line-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding-bottom: 15px;
+}
+
+.pagination-btn:disabled {
+    background-color: var(--secondary);
+    cursor: not-allowed;
+}
+
+.page-info {
+    color: var(--text);
+    font-size: 0.9rem;
+}
+
+.events-list {
+    min-height: 400px;
+}
+
+.refresh-button {
+    background: none;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+
+.refresh-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.refresh-button:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.refresh-button:active svg {
+    animation: rotate 0.5s linear;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Loading Spinner */
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid var(--background);
+    border-radius: 50%;
+    border-top-color: var(--primary);
+    animation: spin 1s ease-in-out infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.checkbox-group label {
+    margin: 0;
+}
+
+/* .time-inputs {
+    display: none;
+    gap: 1rem;
+}
+
+.time-inputs.show {
+    display: flex;
+} */
+
+.time-inputs .form-group {
+    flex: 1;
+}
+
+.optional-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.optional-text {
+    color: var(--text-light);
+    font-size: 0.8rem;
+    font-weight: normal;
+    font-style: italic;
+}
+
+.optional-input {
+    border-style: dashed;
+}
+
+.error-text {
+    color: var(--error);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    display: block;
+}
+
+.error-text.hidden {
+    display: none;
+}
+
+#joinGroupBtn {
+    padding: 0rem 1rem;  /* Reduced from 0.8rem */
+    height: 42px;         /* Specific height, smaller than select's 42px */
+}
+
+/* Admin Section Styles */
+.admin-controls {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.admin-card {
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+.admin-card h3 {
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.danger-button {
+    padding: 0rem 1rem;
+    height: 42px;
+    background-color: var(--error);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.danger-button:hover {
+    opacity: 0.9;
+}
+
+.danger-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+}
+
+.admin-only {
+    display: none;
+}
+
+.admin-only.visible {
+    display: block;
+}
+
+.group-code-display {
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px var(--shadow);
+}
+
+.group-code-display h3 {
+    margin-bottom: 0.5rem;
+    color: var(--primary);
+}
+
+.code-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    background-color: var(--background);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.code-container code {
+    font-family: monospace;
+    font-size: 1.1rem;
+    flex: 1;
+}
+
+#copyGroupCode {
+    padding: 0.5rem;
+    height: auto;
+}
+
+#copyGroupCode svg {
+    display: block;
+}
