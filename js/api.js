@@ -7,6 +7,19 @@ const API = {
         try {
             UI.showLoading();
             const token = localStorage.getItem('token');
+            
+            // Check token expiration before making the request
+            if (token) {
+                const claims = Auth.parseJWT(token);
+                const expirationTime = claims.exp * 1000; // Convert to milliseconds
+                if (Date.now() >= expirationTime) {
+                    // Token has expired, log out the user
+                    Auth.logout();
+                    UI.showLoggedOutState();
+                    throw new Error('Token expired');
+                }
+            }
+
             const baseOptions = {
                 headers: {
                     'Content-Type': 'application/json',
