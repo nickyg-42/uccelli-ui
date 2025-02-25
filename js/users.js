@@ -3,6 +3,10 @@ class UsersManager {
         return API.fetch(`/user/${id}`);
     }
 
+    static async getUserInfo(id) {
+        return API.fetch(`/user/${id}/info`);
+    }
+
     static async updateUser(id, field, value) {
         return API.fetch(`/user/${id}/${field}`, {
             method: 'PATCH',

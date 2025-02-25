@@ -874,9 +874,16 @@ class UI {
         // Fetch creator's information
         let creatorName = 'Unknown';
         try {
-            const creator = await UsersManager.getUser(event.created_by_id);
+            const creator = await UsersManager.getUserInfo(event.created_by_id);
+            console.log(creator);
             if (creator) {
-                creatorName = creator.username || creator.name || 'Unknown';
+                const capitalizeWord = (word) => {
+                    if (!word) return '';
+                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                };
+                const firstName = capitalizeWord(creator.first_name);
+                const lastName = capitalizeWord(creator.last_name);
+                creatorName = firstName + " " + lastName || 'Unknown';
             }
         } catch (error) {
             console.error('Error fetching event creator:', error);
@@ -888,7 +895,7 @@ class UI {
                     <h3>${event.name}</h3>
                     ${deleteButton}
                 </div>
-                <p class="event-creator">Created by: ${creatorName}</p>
+                <p class="event-creator">Author: ${creatorName}</p>
                 <p>${event.description}</p>
                 <div class="event-times">
                     <span>Start: ${this.formatDateTime(event.start_time)}</span>
@@ -934,12 +941,12 @@ class UI {
         const views = document.querySelectorAll('.view-content');
         
         viewBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const viewType = e.target.dataset.view;
+            btn.addEventListener('click', () => {
+                const viewType = btn.dataset.view;
                 
                 // Toggle active class on buttons
                 viewBtns.forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
+                btn.classList.add('active');
                 
                 // Toggle active class on views
                 views.forEach(v => v.classList.remove('active'));
