@@ -875,7 +875,6 @@ class UI {
         let creatorName = 'Unknown';
         try {
             const creator = await UsersManager.getUserInfo(event.created_by_id);
-            console.log(creator);
             if (creator) {
                 const capitalizeWord = (word) => {
                     if (!word) return '';
