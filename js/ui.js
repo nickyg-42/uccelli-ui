@@ -696,8 +696,8 @@ class UI {
             return "Event name cannot exceed 255 characters";
         }
 
-        // Check description length
-        if (eventData.description.length > 1000) {
+        // Check description length if provided
+        if (eventData.description && eventData.description.length > 1000) {
             return "Event description cannot exceed 1000 characters";
         }
 
