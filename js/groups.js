@@ -84,4 +84,167 @@ class GroupsManager {
     static async getAdminMembers(groupId) {
         return API.fetch(`/group/${groupId}/admins`);
     }
+
+    static async refreshGroupMembers() {
+        const groupSelect = document.getElementById('groupSelect');
+        const membersList = document.getElementById('groupMembersList');
+        const groupMembersSection = document.getElementById('groupMembersSection');
+        
+        if (!groupSelect || !groupSelect.value) {
+            if (groupMembersSection) {
+                groupMembersSection.classList.add('hidden');
+            }
+            return;
+        }
+
+        try {
+            const members = await GroupsManager.getGroupMembers(groupSelect.value);
+            let admins = [];
+            try {
+                admins = await GroupsManager.getAdminMembers(groupSelect.value) || [];
+            } catch (adminError) {
+                console.warn('Failed to fetch admin members:', adminError);
+                // Continue with empty admins list
+            }
+            
+            // Clear existing members
+            membersList.innerHTML = '';
+            groupMembersSection.classList.remove('hidden');
+
+            // Create a Set of admin IDs for easy lookup
+            const adminIds = new Set(admins.map(admin => admin.id));
+
+            // Sort members with admins first
+            const sortedMembers = members.sort((a, b) => {
+                const aIsAdmin = adminIds.has(a.id);
+                const bIsAdmin = adminIds.has(b.id);
+                if (aIsAdmin && !bIsAdmin) return -1;
+                if (!aIsAdmin && bIsAdmin) return 1;
+                return (a.first_name + ' ' + a.last_name).localeCompare(b.first_name + ' ' + b.last_name);
+            });
+
+            const isSuperAdmin = Auth.hasRole('super_admin');
+
+            // Add member cards
+            sortedMembers.forEach(member => {
+                const isAdmin = adminIds.has(member.id);
+                const memberCard = document.createElement('div');
+                memberCard.className = 'member-card';
+                
+                let controlsHtml = '';
+                if (isSuperAdmin) {
+                    controlsHtml = `
+                        <div class="member-controls">
+                            <button type="button" class="edit-button" title="Edit User" data-user-id="${member.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <button type="button" class="delete-button" title="Remove User" data-user-id="${member.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                }
+
+                memberCard.innerHTML = `
+                    ${controlsHtml}
+                    <div class="member-name">${UI.capitalizeWord(member.first_name)} ${UI.capitalizeWord(member.last_name)}</div>
+                    <div class="member-email">${member.email}</div>
+                    <div class="member-role">${isAdmin ? 'Admin' : 'Member'}</div>
+                `;
+
+                // Add event listeners if super admin
+                if (isSuperAdmin) {
+                    memberCard.querySelector('.edit-button').addEventListener('click', () => {
+                        GroupsManager.showEditUserModal(member);
+                    });
+
+                    memberCard.querySelector('.delete-button').addEventListener('click', async () => {
+                        if (confirm(`Are you sure you want to delete ${member.first_name} ${member.last_name}?`)) {
+                            try {
+                                await GroupsManager.removeUserFromGroup(groupSelect.value, member.id);
+                                await UsersManager.deleteUser(member.id);
+                                await GroupsManager.refreshGroupMembers();
+                            } catch (error) {
+                                console.error('Error deleting user:', error);
+                                alert('Failed to delete user from group');
+                            }
+                        }
+                    });
+                }
+
+                membersList.appendChild(memberCard);
+            });
+        } catch (error) {
+            console.error('Error fetching group members:', error);
+            if (membersList) {
+                membersList.innerHTML = `
+                    <div class="error-message">
+                        Failed to load group members. Please try again later.
+                    </div>
+                `;
+            }
+        }
+    }
+
+    static async showEditUserModal(user) {
+        const modal = document.getElementById('editUserModal');
+        const form = document.getElementById('editUserForm');
+        
+        // Populate form fields
+        document.getElementById('editUserId').value = user.id;
+        document.getElementById('editFirstName').value = user.first_name;
+        document.getElementById('editLastName').value = user.last_name;
+        document.getElementById('editEmail').value = user.email;
+        document.getElementById('editUsername').value = user.username;
+
+        // Show modal
+        modal.classList.remove('hidden');
+
+        // Handle form submission
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            try {
+                const updatedUser = {
+                    first_name: document.getElementById('editFirstName').value,
+                    last_name: document.getElementById('editLastName').value,
+                    email: document.getElementById('editEmail').value,
+                    username: document.getElementById('editUsername').value
+                };
+
+                await UsersManager.updateUser(updatedUser, document.getElementById('editUserId').value);
+                modal.classList.add('hidden');
+                await GroupsManager.refreshGroupMembers();
+            } catch (error) {
+                console.error('Error updating user:', error);
+                alert('Failed to update user');
+            }
+        };
+
+        // Handle close button
+        const closeBtn = document.getElementById('closeEditUserModal');
+        const handleClose = () => {
+            modal.classList.add('hidden');
+            form.removeEventListener('submit', handleSubmit);
+            closeBtn.removeEventListener('click', handleClose);
+        };
+
+        form.addEventListener('submit', handleSubmit);
+        closeBtn.addEventListener('click', handleClose);
+    }
 }
+
+// Add event listener for group selection changes
+document.addEventListener('DOMContentLoaded', () => {
+    const groupSelect = document.getElementById('groupSelect');
+    if (groupSelect) {
+        groupSelect.addEventListener('change', async () => {
+            await GroupsManager.refreshGroupMembers();
+        });
+    }
+});

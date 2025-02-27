@@ -7,10 +7,10 @@ class UsersManager {
         return API.fetch(`/user/${id}/info`);
     }
 
-    static async updateUser(id, field, value) {
-        return API.fetch(`/user/${id}/${field}`, {
+    static async updateUser(userData, id) {
+        return API.fetch(`/user/${id}`, {
             method: 'PATCH',
-            body: JSON.stringify({ value }),
+            body: JSON.stringify(userData),
         });
     }
 
@@ -19,4 +19,4 @@ class UsersManager {
             method: 'DELETE',
         });
     }
-} 
+}

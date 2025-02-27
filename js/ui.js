@@ -529,6 +529,7 @@ class UI {
                 document.querySelector('.group-code-display').classList.add('hidden');
             }
             await this.loadGroupEvents(groupId);
+            await GroupsManager.refreshGroupMembers(); // Add this line to load members on initial load
             this.hideLoading();
         } catch (error) {
             console.error('Failed to load groups:', error);
@@ -876,12 +877,8 @@ class UI {
         try {
             const creator = await UsersManager.getUserInfo(event.created_by_id);
             if (creator) {
-                const capitalizeWord = (word) => {
-                    if (!word) return '';
-                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-                };
-                const firstName = capitalizeWord(creator.first_name);
-                const lastName = capitalizeWord(creator.last_name);
+                const firstName = this.capitalizeWord(creator.first_name);
+                const lastName = this.capitalizeWord(creator.last_name);
                 creatorName = firstName + " " + lastName || 'Unknown';
             }
         } catch (error) {
@@ -902,6 +899,11 @@ class UI {
                 </div>
             </div>
         `;
+    }
+
+    static capitalizeWord(word) {
+        if (!word) return '';
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     }
 
     static formatDateTime(date) {

@@ -724,3 +724,85 @@ main {
 #copyGroupCode svg {
     display: block;
 }
+
+/* Group Members Section */
+.members-list {
+    padding: 1rem;
+}
+
+.members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.member-card {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.member-card .member-controls {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.member-card .member-controls button {
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.member-card .member-controls button:hover {
+    color: var(--accent-color);
+}
+
+.member-card .member-controls button.delete-button:hover {
+    color: var(--error);
+}
+
+.member-card .member-controls svg {
+    width: 16px;
+    height: 16px;
+}
+
+.member-card .member-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.member-card .member-email {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+
+.member-card .member-role {
+    color: var(--accent-color);
+    font-size: 0.8em;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+/* Group Members Error Message */
+.members-list .error-message {
+    color: var(--error);
+    text-align: center;
+    padding: 1rem;
+    background-color: #fef2f2;
+    border-radius: 8px;
+    margin: 1rem;
+}
