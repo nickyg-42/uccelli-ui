@@ -89,7 +89,7 @@ class UI {
                 alert('Group created successfully!');
                 
                 // Refresh the groups list
-                await this.loadUserGroups();
+                await this.loadUserGroups(parseInt(userSession.userId));
             } catch (error) {
                 console.error('Failed to create group:', error);
                 alert('Failed to create group: ' + error.message);
@@ -130,7 +130,7 @@ class UI {
                 alert('User added to group successfully!');
                 
                 // Refresh the groups list if the current user's groups are displayed
-                await this.loadUserGroups();
+                await this.loadUserGroups(userId);
             } catch (error) {
                 console.error('Failed to add user to group:', error);
                 alert('Failed to add user to group: ' + error.message);
