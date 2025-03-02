@@ -322,6 +322,7 @@ class UI {
             "john.grimaldi@gmail.com",
             "dominicgrimaldi1738@gmail.com",
             "karengrimaldi@gmail.com",
+            "testuser@gmail.com"
         ]
         if (!validEmails.includes(email)) {
             return false;

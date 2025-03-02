@@ -114,25 +114,37 @@ class GroupsManager {
             // Create a Set of admin IDs for easy lookup
             const adminIds = new Set(admins.map(admin => admin.id));
 
-            // Sort members with admins first
+            // Sort members with current user first, then admins, then other members
             const sortedMembers = members.sort((a, b) => {
+                // Current user comes first
+                if (a.id === Auth.getUserSession().userId) return -1;
+                if (b.id === Auth.getUserSession().userId) return 1;
+
+                // Then sort by admin status
                 const aIsAdmin = adminIds.has(a.id);
                 const bIsAdmin = adminIds.has(b.id);
                 if (aIsAdmin && !bIsAdmin) return -1;
                 if (!aIsAdmin && bIsAdmin) return 1;
+
+                // Finally sort by name
                 return (a.first_name + ' ' + a.last_name).localeCompare(b.first_name + ' ' + b.last_name);
             });
 
             const isSuperAdmin = Auth.hasRole('super_admin');
+            const currentUserId = Auth.getUserSession().userId;
 
             // Add member cards
             sortedMembers.forEach(member => {
                 const isAdmin = adminIds.has(member.id);
                 const memberCard = document.createElement('div');
                 memberCard.className = 'member-card';
+                if (member.id === currentUserId) {
+                    memberCard.classList.add('current-user');
+                }
                 
                 let controlsHtml = '';
-                if (isSuperAdmin) {
+                // Show edit controls if user is super admin OR if it's the current user editing themselves
+                if (isSuperAdmin || (!isSuperAdmin && member.id === currentUserId)) {
                     controlsHtml = `
                         <div class="member-controls">
                             <button type="button" class="edit-button" title="Edit User" data-user-id="${member.id}">
@@ -141,12 +153,14 @@ class GroupsManager {
                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                 </svg>
                             </button>
+                            ${isSuperAdmin ? `
                             <button type="button" class="delete-button" title="Remove User" data-user-id="${member.id}">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                     <line x1="6" y1="6" x2="18" y2="18"></line>
                                 </svg>
                             </button>
+                            ` : ''}
                         </div>
                     `;
                 }
@@ -158,24 +172,31 @@ class GroupsManager {
                     <div class="member-role">${isAdmin ? 'Admin' : 'Member'}</div>
                 `;
 
-                // Add event listeners if super admin
-                if (isSuperAdmin) {
-                    memberCard.querySelector('.edit-button').addEventListener('click', () => {
+                // Add event listeners
+                const editButton = memberCard.querySelector('.edit-button');
+                if (editButton) {
+                    editButton.addEventListener('click', () => {
                         GroupsManager.showEditUserModal(member);
                     });
+                }
 
-                    memberCard.querySelector('.delete-button').addEventListener('click', async () => {
-                        if (confirm(`Are you sure you want to delete ${member.first_name} ${member.last_name}?`)) {
-                            try {
-                                await GroupsManager.removeUserFromGroup(groupSelect.value, member.id);
-                                await UsersManager.deleteUser(member.id);
-                                await GroupsManager.refreshGroupMembers();
-                            } catch (error) {
-                                console.error('Error deleting user:', error);
-                                alert('Failed to delete user from group');
+                // Add delete button event listener (super admin only)
+                if (isSuperAdmin) {
+                    const deleteButton = memberCard.querySelector('.delete-button');
+                    if (deleteButton) {
+                        deleteButton.addEventListener('click', async () => {
+                            if (confirm(`Are you sure you want to delete ${member.first_name} ${member.last_name}?`)) {
+                                try {
+                                    await GroupsManager.removeUserFromGroup(groupSelect.value, member.id);
+                                    await UsersManager.deleteUser(member.id);
+                                    await GroupsManager.refreshGroupMembers();
+                                } catch (error) {
+                                    console.error('Error deleting user:', error);
+                                    alert('Failed to delete user from group');
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
 
                 membersList.appendChild(memberCard);

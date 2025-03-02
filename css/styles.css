@@ -747,6 +747,26 @@ main {
     position: relative;
 }
 
+.member-card.current-user {
+    background-color: var(--primary);
+    color: var(--white);
+    border: 2px solid var(--primary-light);
+}
+
+.member-card.current-user .member-email,
+.member-card.current-user .member-role {
+    color: var(--white);
+    opacity: 0.9;
+}
+
+.member-card.current-user .edit-button svg {
+    stroke: var(--white);
+}
+
+.member-card.current-user .edit-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
 .member-card .member-controls {
     position: absolute;
     top: 0.5rem;
