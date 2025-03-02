@@ -30,7 +30,9 @@ const API = {
             const response = await fetch(`${this.BASE_URL}${endpoint}`, { ...baseOptions, ...options });
 
             if (!response.ok) {
-                throw new Error(`HTTP error. status: ${response.status}`);
+                const error = new Error(`HTTP error. status: ${response.status}`);
+                error.status = response.status;
+                throw error;
             }
             
             const text = await response.text();

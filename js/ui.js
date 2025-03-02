@@ -311,22 +311,6 @@ class UI {
     }
 
     static validateEmail(email) {
-        // FIXME: NICKY
-        const validEmails = [
-            "evangelinegrimaldi8@gmail.com",
-            "nicholasgrimaldi42@gmail.com",
-            "fiona.tetreault@gmail.com",
-            "jessicaagrimaldi@gmail.com",
-            "noahgrimaldi1@gmail.com",
-            "josiahgrimaldi@gmail.com",
-            "john.grimaldi@gmail.com",
-            "dominicgrimaldi1738@gmail.com",
-            "karengrimaldi@gmail.com",
-            "testuser@gmail.com"
-        ]
-        if (!validEmails.includes(email)) {
-            return false;
-        }
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         return email.length > 0 && emailRegex.test(email);
     }
@@ -385,13 +369,9 @@ class UI {
         }
 
         if (!this.validateEmail(email)) {
-            // FIXME: NICKY
-            errorElement.textContent = 'Email address not on list of whitelisted emails, please contact an administrator';
+            errorElement.textContent = 'Please enter a valid email address';
             errorElement.classList.remove('hidden');
             return;
-            // errorElement.textContent = 'Please enter a valid email address';
-            // errorElement.classList.remove('hidden');
-            // return;
         }
 
         if (!this.validateUsername(username)) {
@@ -407,22 +387,24 @@ class UI {
         }
 
         try {
-	    const userData = { 
-  		first_name: firstName, 
-  		last_name: lastName, 
-  		email, 
-  		username, 
-  		password 
-	    };
+            const userData = { 
+                first_name: firstName, 
+                last_name: lastName, 
+                email, 
+                username, 
+                password 
+            };
 
-	    await Auth.register(userData);
-
-	    //const userData = { firstName, lastName, email, username, password };
-            //await Auth.register(userData);
+            await Auth.register(userData);
             alert('Registration successful! Please login.');
             this.showLoginForm();
         } catch (error) {
-            errorElement.textContent = error.message || 'Signup failed. Please try again.';
+            console.error('Registration failed:', error);
+            if (error.status === 401) {
+                errorElement.textContent = 'Email not whitelisted. Please contact an administrator.';
+            } else {
+                errorElement.textContent = error.message || 'Registration failed. Please try again.';
+            }
             errorElement.classList.remove('hidden');
         }
     }
