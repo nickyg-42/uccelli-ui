@@ -803,6 +803,62 @@ class UI {
         document.getElementById('addEventForm').reset();
     }
 
+    static showEventInfoModal(event) {
+        const modal = document.getElementById('eventInfoModal');
+        modal.classList.remove('hidden');
+
+        // Populate event info
+        document.getElementById('eventInfoTitle').textContent = event.title;
+
+        let dateTimeHTML = '';
+        const startDate = event.start.toLocaleDateString(undefined, {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+                                
+        if (event.start.getHours() !== 0 || event.start.getMinutes() !== 0) {
+            const startTime = event.start.toLocaleTimeString(undefined, {
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+            dateTimeHTML += `${startDate} at ${startTime}`;
+            
+            if (event.end) {
+                const endTime = event.end.toLocaleTimeString(undefined, {
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
+                dateTimeHTML += ` - ${endTime}`;
+            }
+        } else {
+            dateTimeHTML = startDate;
+            if (event.end) {
+                const endDate = event.end.toLocaleDateString(undefined, {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                if (endDate !== startDate) {
+                    dateTimeHTML += ` - ${endDate}`;
+                }
+            }
+        }
+                                
+        document.getElementById('eventInfoDateTime').innerHTML = dateTimeHTML;
+        
+        // Set description
+        const description = event.extendedProps.description || 'No description provided';
+        document.getElementById('eventInfoDescription').textContent = description;
+    }
+
+    static hideEventInfoModal() {
+        const modal = document.getElementById('eventInfoModal');
+        modal.classList.add('hidden');
+    }
+
     // Optional: Add method to show admin controls
     static showAdminControls() {
         // Only show admin controls if user has super_admin role
@@ -956,8 +1012,17 @@ class UI {
                     }
                     
                     if (!this.calendar) {
+                        const isMobile = window.innerWidth < 768;
                         this.calendar = new FullCalendar.Calendar(calendarEl, {
-                            initialView: 'dayGridMonth',
+                            initialView: isMobile ? 'dayGridWeek' : 'dayGridMonth',
+                            headerToolbar: {
+                                left: 'prev,next today',
+                                center: 'title',
+                                right: isMobile ? 'dayGridWeek,dayGridMonth' : 'dayGridMonth,dayGridWeek'
+                            },
+                            eventClick: function(info) {
+                                UI.showEventInfoModal(info.event);
+                            },
                             events: async function(info, successCallback, failureCallback) {
                                 try {
                                     const urlParams = new URLSearchParams(window.location.search);

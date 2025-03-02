@@ -287,10 +287,9 @@ main {
 }
 
 .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
+    position: relative;
+    margin-bottom: 1rem;
+    padding-right: 40px;
 }
 
 .modal-header h2 {
@@ -301,6 +300,62 @@ main {
     color: var(--text-light);
     font-size: 0.9rem;
     font-style: italic;
+}
+
+/* Event Info Modal Styles */
+.event-info-content {
+    padding: 20px;
+}
+
+.event-info-section {
+    margin-bottom: 20px;
+}
+
+.event-info-section h3 {
+    color: #4a5568;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+
+.event-datetime {
+    background-color: #f7fafc;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 1.1em;
+    color: #2d3748;
+}
+
+.event-description {
+    line-height: 1.6;
+    color: #4a5568;
+    white-space: pre-wrap;
+    background-color: #f7fafc;
+    padding: 12px;
+    border-radius: 6px;
+}
+
+.close-button {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    /* transform: translateY(-50%); */
+    font-size: 24px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #4a5568;
+    padding: 5px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.close-button:hover {
+    color: #2d3748;
+    background-color: #f7fafc;
 }
 
 /* Empty and Error States */
@@ -825,4 +880,48 @@ main {
     background-color: #fef2f2;
     border-radius: 8px;
     margin: 1rem;
+}
+
+/* Calendar Mobile Styles */
+@media (max-width: 768px) {
+    .fc {
+        /* FullCalendar root element */
+        font-size: 14px;
+    }
+
+    .fc .fc-toolbar {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1.2em;
+    }
+
+    .fc .fc-button {
+        padding: 0.4em 0.65em;
+    }
+
+    .fc .fc-list-event-time {
+        min-width: 100px;
+    }
+
+    /* Better spacing for list view */
+    .fc-list-day-cushion {
+        padding: 8px !important;
+    }
+
+    .fc-list-event {
+        padding: 8px 4px !important;
+    }
+
+    /* Event styling */
+    .fc-event-title {
+        font-size: 1.1em;
+        padding: 4px 0;
+    }
+
+    .fc-daygrid-event {
+        white-space: normal;
+    }
 }
