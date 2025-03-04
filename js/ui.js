@@ -929,6 +929,7 @@ class UI {
         let laughCount = 0;
         let dislikeCount = 0;
         let celebrateCount = 0;
+        let currentUserReaction = "";
         try {
             const reactions = await EventsManager.getEventReactions(event.id);
             if (reactions) {
@@ -936,6 +937,7 @@ class UI {
                 laughCount = this.getReactionCount("laugh", reactions);
                 dislikeCount = this.getReactionCount("dislike", reactions);
                 celebrateCount = this.getReactionCount("celebrate", reactions);
+                currentUserReaction = this.getUserReaction(userSession.userId, reactions);
             }
         } catch (error) {
             console.error('Error fetching event reactions:', error);
@@ -958,28 +960,28 @@ class UI {
                 <div class="event-reactions">
                     <button class="reaction-btn" data-reaction="love" onclick="UI.reactToEvent(${userSession.userId}, 'love', ${event.id})">
                         <span role="img" aria-label="heart">
-                            <img id="love-icon" src=${loveCount > 0 ? "assets/icons/heart_filled.png" : "assets/icons/heart.png"} alt="heart" class="reaction-icon">
+                            <img id="love-icon" src=${currentUserReaction.reaction === "love" ? "assets/icons/heart_filled.png" : "assets/icons/heart.png"} alt="heart" class="reaction-icon">
                         </span>
                         <span class="reaction-count">${loveCount}</span>
                     </button>
 
                     <button class="reaction-btn" data-reaction="dislike" onclick="UI.reactToEvent(${userSession.userId}, 'dislike', ${event.id})">
                         <span role="img" aria-label="dislike">
-                            <img id="dislike-icon" src=${dislikeCount > 0 ? "assets/icons/thumbs-down_filled.png" : "assets/icons/thumbs-down.png"} alt="dislike" class="reaction-icon">
+                            <img id="dislike-icon" src=${currentUserReaction.reaction === "dislike" ? "assets/icons/thumbs-down_filled.png" : "assets/icons/thumbs-down.png"} alt="dislike" class="reaction-icon">
                         </span>
                         <span class="reaction-count">${dislikeCount}</span>
                     </button>
 
                     <button class="reaction-btn" data-reaction="celebrate" onclick="UI.reactToEvent(${userSession.userId}, 'celebrate', ${event.id})">
                         <span role="img" aria-label="celebrate">
-                            <img id="celebrate-icon" src=${celebrateCount > 0 ? "assets/icons/party-horn_filled.png" : "assets/icons/party-horn.png"} alt="celebrate" class="reaction-icon">
+                            <img id="celebrate-icon" src=${currentUserReaction.reaction === "celebrate" ? "assets/icons/party-horn_filled.png" : "assets/icons/party-horn.png"} alt="celebrate" class="reaction-icon">
                         </span>
                         <span class="reaction-count">${celebrateCount}</span>
                     </button>
 
                     <button class="reaction-btn" data-reaction="laugh" onclick="UI.reactToEvent(${userSession.userId}, 'laugh', ${event.id})">
                         <span role="img" aria-label="laugh">
-                            <img id="laugh-icon" src=${laughCount > 0 ? "assets/icons/laugh-squint_filled.png" : "assets/icons/laugh-squint.png"} alt="laugh" class="reaction-icon">
+                            <img id="laugh-icon" src=${currentUserReaction.reaction === "laugh" ? "assets/icons/laugh-squint_filled.png" : "assets/icons/laugh-squint.png"} alt="laugh" class="reaction-icon">
                         </span>
                         <span class="reaction-count">${laughCount}</span>
                     </button>
@@ -990,6 +992,11 @@ class UI {
 
     static getReactionCount(reactionType, reactions) {
         return reactions.filter(reaction => reaction.reaction === reactionType).length;
+    }
+
+    static getUserReaction(userId, reactions) {
+        const reaction = reactions.find(reaction => reaction.user_id === userId);
+        return reaction ? reaction : "";
     }
 
     static capitalizeWord(word) {
