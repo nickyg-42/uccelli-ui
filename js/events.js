@@ -11,10 +11,28 @@ class EventsManager {
         return API.fetch(`/group/${groupId}/event`);
     }
 
+    static async getEventReactions(eventId) {
+        return API.fetch(`/event/${eventId}/reaction`);
+    }
+
     static async createEvent(eventData) {
         return API.fetch('/event', {
             method: 'POST',
             body: JSON.stringify(eventData),
+        });
+    }
+
+    static async reactToEvent(userReaction) {
+        return API.fetch('/event/reaction', {
+            method: 'POST',
+            body: JSON.stringify(userReaction),
+        });
+    }
+
+    static async unreactToEvent(userReaction) {
+        return API.fetch('/event/reaction', {
+            method: 'DELETE',
+            body: JSON.stringify(userReaction),
         });
     }
 

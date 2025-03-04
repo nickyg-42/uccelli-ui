@@ -252,6 +252,66 @@ main {
     font-style: italic;
 }
 
+/* Reactions Section */
+.event-reactions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.reaction-icon {
+    height: auto;
+    width: 1.5rem;
+    vertical-align: middle;
+}
+
+.reaction-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1.2rem;
+    color: var(--primary);
+    padding: 0.5rem;
+    transition: color 0.3s;
+    text-align: center;
+}
+
+.reaction-btn:hover {
+    color: var(--primary-dark);
+}
+
+.reaction-btn span {
+    margin-bottom: 0.3rem;
+}
+
+/* Reaction Count */
+.reaction-count {
+    font-size: 0.6em;
+    color: var(--text-secondary);
+}
+
+/* Optional: Add custom styling for the reaction buttons on hover */
+.reaction-btn[data-reaction="laugh"]:hover {
+    color: #ffcc00;
+}
+
+.reaction-btn[data-reaction="like"]:hover {
+    color: #0084ff;
+}
+
+.reaction-btn[data-reaction="love"]:hover {
+    color: #ff3366;
+}
+
+.reaction-btn[data-reaction="sad"]:hover {
+    color: #999999;
+}
+
 /* Modal */
 .modal {
     position: fixed;

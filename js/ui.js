@@ -924,6 +924,23 @@ class UI {
             console.error('Error fetching event creator:', error);
         }
 
+        // Fetch event reactions
+        let loveCount = 0;
+        let laughCount = 0;
+        let dislikeCount = 0;
+        let celebrateCount = 0;
+        try {
+            const reactions = await EventsManager.getEventReactions(event.id);
+            if (reactions) {
+                loveCount = this.getReactionCount("love", reactions);
+                laughCount = this.getReactionCount("laugh", reactions);
+                dislikeCount = this.getReactionCount("dislike", reactions);
+                celebrateCount = this.getReactionCount("celebrate", reactions);
+            }
+        } catch (error) {
+            console.error('Error fetching event reactions:', error);
+        }
+
         return `
             <div class="event-card" data-event-id="${event.id}">
                 <div class="event-header">
@@ -936,8 +953,43 @@ class UI {
                     <span>Start: ${this.formatDateTime(event.start_time)}</span>
                     <span>End: ${this.formatDateTime(event.end_time)}</span>
                 </div>
+
+                <!-- Reactions Row -->
+                <div class="event-reactions">
+                    <button class="reaction-btn" data-reaction="love" onclick="UI.reactToEvent(${userSession.userId}, 'love', ${event.id})">
+                        <span role="img" aria-label="heart">
+                            <img id="love-icon" src=${loveCount > 0 ? "assets/icons/heart_filled.png" : "assets/icons/heart.png"} alt="heart" class="reaction-icon">
+                        </span>
+                        <span class="reaction-count">${loveCount}</span>
+                    </button>
+
+                    <button class="reaction-btn" data-reaction="dislike" onclick="UI.reactToEvent(${userSession.userId}, 'dislike', ${event.id})">
+                        <span role="img" aria-label="dislike">
+                            <img id="dislike-icon" src=${dislikeCount > 0 ? "assets/icons/thumbs-down_filled.png" : "assets/icons/thumbs-down.png"} alt="dislike" class="reaction-icon">
+                        </span>
+                        <span class="reaction-count">${dislikeCount}</span>
+                    </button>
+
+                    <button class="reaction-btn" data-reaction="celebrate" onclick="UI.reactToEvent(${userSession.userId}, 'celebrate', ${event.id})">
+                        <span role="img" aria-label="celebrate">
+                            <img id="celebrate-icon" src=${celebrateCount > 0 ? "assets/icons/party-horn_filled.png" : "assets/icons/party-horn.png"} alt="celebrate" class="reaction-icon">
+                        </span>
+                        <span class="reaction-count">${celebrateCount}</span>
+                    </button>
+
+                    <button class="reaction-btn" data-reaction="laugh" onclick="UI.reactToEvent(${userSession.userId}, 'laugh', ${event.id})">
+                        <span role="img" aria-label="laugh">
+                            <img id="laugh-icon" src=${laughCount > 0 ? "assets/icons/laugh-squint_filled.png" : "assets/icons/laugh-squint.png"} alt="laugh" class="reaction-icon">
+                        </span>
+                        <span class="reaction-count">${laughCount}</span>
+                    </button>
+                </div>
             </div>
         `;
+    }
+
+    static getReactionCount(reactionType, reactions) {
+        return reactions.filter(reaction => reaction.reaction === reactionType).length;
     }
 
     static capitalizeWord(word) {
@@ -954,6 +1006,96 @@ class UI {
             minute: '2-digit',
             hour12: true
         });
+    }
+    
+    static fillReactionIcon(reaction) {
+        switch (reaction) {
+            case "laugh":
+                var icon = document.getElementById(`laugh-icon`);
+                icon.src = "assets/icons/laugh-squint_filled.png"
+                break;
+            case "love":
+                var icon = document.getElementById(`love-icon`);
+                icon.src = "assets/icons/heart_filled.png"
+                break;
+            case "dislike":
+                var icon = document.getElementById(`dislike-icon`);
+                icon.src = "assets/icons/thumbs-down_filled.png"
+                break;
+            case "celebrate":
+                var icon = document.getElementById(`celebrate-icon`);
+                icon.src = "assets/icons/party-horn_filled.png"
+                break;
+            default:
+                console.error("Invalid reaction");
+        }
+    }
+
+    static unfillReactionIcon(reaction) {
+        switch (reaction) {
+            case "laugh":
+                var icon = document.getElementById(`laugh-icon`);
+                icon.src = "assets/icons/laugh-squint.png"
+                break;
+            case "love":
+                var icon = document.getElementById(`love-icon`);
+                icon.src = "assets/icons/heart.png"
+                break;
+            case "dislike":
+                var icon = document.getElementById(`dislike-icon`);
+                icon.src = "assets/icons/thumbs-down.png"
+                break;
+            case "celebrate":
+                var icon = document.getElementById(`celebrate-icon`);
+                icon.src = "assets/icons/party-horn.png"
+                break;
+            default:
+                console.error("Invalid reaction");
+        }
+    }
+
+    static async reactToEvent(userId, reaction, eventId) {
+        try {
+            const reactions = await EventsManager.getEventReactions(eventId);
+
+            const currentUserReaction = reactions !== null ? reactions.find(r => r["user_id"] === userId) : null;
+            const newUserReaction = {"user_id": userId, "reaction": reaction, "event_id": eventId}
+
+            // If they are clicking a reaction they already selected, remove the reaction and return
+            if (currentUserReaction && currentUserReaction["reaction"] === reaction) {
+                await EventsManager.unreactToEvent(currentUserReaction);
+                this.unfillReactionIcon(reaction);
+
+                // FIXME EXTRACT ?
+                // Get current group ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const groupId = urlParams.get('groupId');
+                
+                // Refresh events list
+                await this.loadGroupEvents(groupId);
+
+                return;
+            }
+
+            // Remove old reaction first if exists
+            if (currentUserReaction) {
+                await EventsManager.unreactToEvent(currentUserReaction)
+                this.unfillReactionIcon(reaction);
+            }
+
+            await EventsManager.reactToEvent(newUserReaction);
+            this.fillReactionIcon(reaction);
+
+            // Get current group ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const groupId = urlParams.get('groupId');
+            
+            // Refresh events list
+            await this.loadGroupEvents(groupId);
+        } catch (error) {
+            console.error('Failed to react to event:', error);
+            alert('Failed to react to event. Please try again.');
+        }
     }
 
     static async deleteEvent(eventId) {
