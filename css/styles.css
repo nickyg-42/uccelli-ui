@@ -255,7 +255,7 @@ main {
 /* Reactions Section */
 .event-reactions {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid var(--border);
@@ -279,6 +279,7 @@ main {
     padding: 0.5rem;
     transition: color 0.3s;
     text-align: center;
+    margin-right: 1rem;
 }
 
 .reaction-btn:hover {
