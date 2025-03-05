@@ -58,11 +58,19 @@ body {
     vertical-align: middle;
 }
 
-.nav-items {
+/* .nav-items {
     display: flex;
     gap: 1rem;
     align-items: center;
+} */
+
+.nav-items {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap; /* Prevent items from stacking */
+    gap: 1rem;
 }
+
 
 /* Buttons */
 button, .nav-item {
@@ -221,6 +229,16 @@ main {
     margin-bottom: 0.5rem;
 }
 
+.event-times {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem; /* Optional: Adds spacing between Start and End */
+}
+
+.event-times span {
+    white-space: nowrap; /* Prevents text from breaking within a single span */
+}
+
 .event-header {
     display: flex;
     justify-content: space-between;
@@ -250,6 +268,10 @@ main {
     font-size: 0.9em;
     margin: 0.5rem 0;
     font-style: italic;
+}
+
+.event-card-description {
+    margin-bottom: .5rem;
 }
 
 /* Reactions Section */
@@ -475,11 +497,20 @@ main {
     }
 }
 
-.user-greeting {
-    color: var(--text);
-    font-size: 0.9rem;
-    margin-right: .5rem;
+.user-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;  /* Prevents text from wrapping */
 }
+
+.user-greeting {
+    white-space: nowrap;  /* Ensures text does not wrap to a new line */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;  /* Adjust width to fit your layout */
+}
+
 
 /* Remove any button-like styling that might have been applied */
 #userEmail {

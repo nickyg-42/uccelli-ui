@@ -254,7 +254,7 @@ class UI {
         document.getElementById('mainContent').classList.remove('hidden');
         
         // Update the username display
-        document.getElementById('userEmail').textContent = userSession.username;
+        //document.getElementById('userEmail').textContent = userSession.username;
 
         // If user is SuperAdmin, show admin controls
         if (Auth.hasRole('super_admin')) {
@@ -950,7 +950,7 @@ class UI {
                     ${deleteButton}
                 </div>
                 <p class="event-creator">Author: ${creatorName}</p>
-                <p>${event.description}</p>
+                <p class="event-card-description">${event.description}</p>
                 <div class="event-times">
                     <span>Start: ${this.formatDateTime(event.start_time)}</span>
                     <span>End: ${this.formatDateTime(event.end_time)}</span>

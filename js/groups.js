@@ -167,7 +167,7 @@ class GroupsManager {
 
                 memberCard.innerHTML = `
                     ${controlsHtml}
-                    <div class="member-name">${UI.capitalizeWord(member.first_name)} ${UI.capitalizeWord(member.last_name)}</div>
+                    <div class="member-name">${UI.capitalizeWord(member.first_name)} ${UI.capitalizeWord(member.last_name)}}</div>
                     <div class="member-email">${member.email}</div>
                     <div class="member-role">${isAdmin ? 'Admin' : 'Member'}</div>
                 `;
