@@ -44,6 +44,15 @@ class GroupsManager {
         });
     }
 
+    static async updateGroupDoSendEmails(groupId, doSendEmails) {
+        console.log(JSON.stringify(doSendEmails))
+        return API.fetch(`/group/${groupId}/do-send-emails`, {
+            method: 'PATCH',
+            body: JSON.stringify(doSendEmails),
+        });
+    }
+
+
     static async deleteGroup(id) {
         return API.fetch(`/group/${id}`, {
             method: 'DELETE',
@@ -167,7 +176,7 @@ class GroupsManager {
 
                 memberCard.innerHTML = `
                     ${controlsHtml}
-                    <div class="member-name">${UI.capitalizeWord(member.first_name)} ${UI.capitalizeWord(member.last_name)}}</div>
+                    <div class="member-name">${UI.capitalizeWord(member.first_name)} ${UI.capitalizeWord(member.last_name)}</div>
                     <div class="member-email">${member.email}</div>
                     <div class="member-role">${isAdmin ? 'Admin' : 'Member'}</div>
                 `;

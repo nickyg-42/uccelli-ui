@@ -72,6 +72,23 @@ class UI {
         document.getElementById('closeJoinGroupModal').addEventListener('click', () => this.hideJoinGroupModal());
         document.getElementById('joinGroupForm').addEventListener('submit', (e) => this.handleJoinGroup(e));
 
+        document.getElementById('emailNotificationsToggle').addEventListener('change', async (e) => {
+            e.preventDefault();
+            const isEmailNotificationsEnabled = document.getElementById('emailNotificationsToggle').checked;
+            try {
+                const groupId = document.getElementById('groupSelect').value;
+                if (groupId) {
+                    await GroupsManager.updateGroupDoSendEmails(groupId, {do_send_emails: isEmailNotificationsEnabled})
+                } else {
+                    console.error('Please select a group first before updating do_send_emails:', error);
+                    alert('Failed to update group do_send_emails: ' + error.message);
+                }
+            } catch (error) {
+                console.error('Failed to update group do_send_emails:', error);
+                alert('Failed to update group do_send_emails: ' + error.message);
+            }
+        });
+
         // Add Group form handler
         document.getElementById('addGroupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -729,7 +746,7 @@ class UI {
                 : new Date(`${startDate}T00:00:00`);
         
             let endDateTime;
-            if (sameDayEvent) {
+            if (!endDate) {
                 endDateTime = endTime 
                     ? new Date(`${startDate}T${endTime}:00`)
                     : new Date(`${startDate}T23:59:59`);
@@ -952,8 +969,12 @@ class UI {
                 <p class="event-creator">Author: ${creatorName}</p>
                 <p class="event-card-description">${event.description}</p>
                 <div class="event-times">
-                    <span>Start: ${this.formatDateTime(event.start_time)}</span>
-                    <span>End: ${this.formatDateTime(event.end_time)}</span>
+                    <span>${this.formatDateTime(event.start_time)}</span>
+                    ${
+                        new Date(event.start_time).getDate() !== new Date(event.end_time).getDate() 
+                            ? `<span>${this.formatDateTime(event.end_time)}</span>` 
+                            : ''
+                    }
                 </div>
 
                 <!-- Reactions Row -->
@@ -1322,6 +1343,13 @@ class UI {
             const groupSelect = document.getElementById('adminGroupSelect');
             const adminGroupSelectForAdmin = document.getElementById('adminGroupSelectForAdmin');
             const adminGroupSelectForRemove = document.getElementById('adminGroupSelectForRemove');
+            const adminEmailNotificationToggle = document.getElementById('emailNotificationsToggle');
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const groupId = urlParams.get('groupId');
+
+            const currentGroup = await GroupsManager.getGroup(groupId)
+            adminEmailNotificationToggle.checked = currentGroup.do_send_emails
             
             // Handle case when no groups exist
             if (!groups || groups.length === 0) {
