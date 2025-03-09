@@ -84,4 +84,25 @@ class Auth {
             throw error;
         }
     }
+
+    static async requestPasswordReset(email) {
+        return API.fetch('/user/reset-password', {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+        });
+    }
+
+    static async verifyResetCode(email, code) {
+        return API.fetch('/user/reset-password/verify', {
+            method: 'POST',
+            body: JSON.stringify({ email, code }),
+        });
+    }
+
+    static async resetPassword(email, code, newPassword) {
+        return API.fetch('/user/reset-password/confirm', {
+            method: 'POST',
+            body: JSON.stringify({ email, code, password: newPassword }),
+        });
+    }
 }

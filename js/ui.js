@@ -17,6 +17,8 @@ class UI {
         this.setupEventListeners();
         this.setupTabs();
         this.setupViewToggle();
+        this.setupPasswordResetHandlers();
+        this.setupPasswordToggles();
     }
 
     static setupEventListeners() {
@@ -313,9 +315,6 @@ class UI {
                 
                 // Show the main content
                 this.showLoggedInState();
-                
-                // Set the username in the nav bar
-                document.getElementById('userEmail').textContent = username;
             } else {
                 throw new Error('Invalid login response');
             }
@@ -678,6 +677,7 @@ class UI {
         this.currentGroupId = groupId;
         if (groupId) {
             await this.loadGroupEvents(groupId);
+            await this.loadAdminGroups();
         } else {
             // Clear events if no group selected
             document.getElementById('upcomingEventsList').innerHTML = '';
@@ -960,6 +960,19 @@ class UI {
             console.error('Error fetching event reactions:', error);
         }
 
+        const startDate = new Date(event.start_time);
+        const endDate = new Date(event.end_time);
+        const formatDate = (date) => {
+            const weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
+            const month = date.toLocaleDateString('en-US', { month: 'long' });
+            const day = date.getDate();
+            const year = date.getFullYear();
+            const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            return date.getHours() === 0 && date.getMinutes() === 0 
+                ? `${weekday}, ${month} ${day}`
+                : `${weekday}, ${month} ${day} at ${time}`;
+        };
+
         return `
             <div class="event-card" data-event-id="${event.id}">
                 <div class="event-header">
@@ -969,10 +982,10 @@ class UI {
                 <p class="event-creator">Author: ${creatorName}</p>
                 <p class="event-card-description">${event.description}</p>
                 <div class="event-times">
-                    <span>${this.formatDateTime(event.start_time)}</span>
+                    <span>${formatDate(startDate)}</span>
                     ${
-                        new Date(event.start_time).getDate() !== new Date(event.end_time).getDate() 
-                            ? `<span>${this.formatDateTime(event.end_time)}</span>` 
+                        startDate.getDate() !== endDate.getDate() 
+                            ? `<span>${formatDate(endDate)}</span>` 
                             : ''
                     }
                 </div>
@@ -1348,8 +1361,10 @@ class UI {
             const urlParams = new URLSearchParams(window.location.search);
             const groupId = urlParams.get('groupId');
 
-            const currentGroup = await GroupsManager.getGroup(groupId)
-            adminEmailNotificationToggle.checked = currentGroup.do_send_emails
+            if (groupId) {
+                const currentGroup = await GroupsManager.getGroup(groupId)
+                adminEmailNotificationToggle.checked = currentGroup.do_send_emails
+            }
             
             // Handle case when no groups exist
             if (!groups || groups.length === 0) {
@@ -1565,9 +1580,122 @@ class UI {
         }
     }
 
+    static showResetPasswordModal() {
+        const modal = document.getElementById('resetPasswordModal');
+        modal.classList.remove('hidden');
+        // Show first step, hide others
+        document.getElementById('resetEmailForm').classList.remove('hidden');
+        document.getElementById('resetCodeForm').classList.add('hidden');
+        document.getElementById('newPasswordForm').classList.add('hidden');
+    }
+
+    static hideResetPasswordModal() {
+        const modal = document.getElementById('resetPasswordModal');
+        modal.classList.add('hidden');
+        // Reset forms
+        document.getElementById('resetEmailForm').reset();
+        document.getElementById('resetCodeForm').reset();
+        document.getElementById('newPasswordForm').reset();
+    }
+
+    static setupPasswordResetHandlers() {
+        // Forgot password link
+        document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            this.showResetPasswordModal();
+        });
+
+        // Email form submission
+        document.getElementById('resetEmailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('resetEmail').value;
+            const errorElement = document.getElementById('resetEmailError');
+            
+            try {
+                await Auth.requestPasswordReset(email);
+                // Show code verification form
+                document.getElementById('resetEmailForm').classList.add('hidden');
+                document.getElementById('resetCodeForm').classList.remove('hidden');
+            } catch (error) {
+                errorElement.textContent = error.message || 'Failed to send reset code';
+                errorElement.classList.remove('hidden');
+            }
+        });
+
+        // Code verification form
+        document.getElementById('resetCodeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('resetEmail').value;
+            const code = document.getElementById('resetCode').value;
+            const errorElement = document.getElementById('resetCodeError');
+            
+            try {
+                await Auth.verifyResetCode(email, code);
+                // Show new password form
+                document.getElementById('resetCodeForm').classList.add('hidden');
+                document.getElementById('newPasswordForm').classList.remove('hidden');
+            } catch (error) {
+                errorElement.textContent = error.message || 'Invalid code';
+                errorElement.classList.remove('hidden');
+            }
+        });
+
+        // New password form
+        document.getElementById('newPasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('resetEmail').value;
+            const code = document.getElementById('resetCode').value;
+            const password = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorElement = document.getElementById('newPasswordError');
+            
+            if (password !== confirmPassword) {
+                errorElement.textContent = 'Passwords do not match';
+                errorElement.classList.remove('hidden');
+                return;
+            }
+            
+            if (!this.validatePassword(password)) {
+                errorElement.textContent = 'Password does not meet requirements';
+                errorElement.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                await Auth.resetPassword(email, code, password);
+                this.hideResetPasswordModal();
+                alert('Password reset successful! Please login with your new password.');
+            } catch (error) {
+                errorElement.textContent = error.message || 'Failed to reset password';
+                errorElement.classList.remove('hidden');
+            }
+        });
+    }
+
+    static setupPasswordToggles() {
+        document.querySelectorAll('.password-toggle').forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                const button = e.currentTarget;
+                const input = button.parentElement.querySelector('input');
+                const eyeOpen = button.querySelectorAll('.eye-open');
+                const eyeClosed = button.querySelectorAll('.eye-closed');
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    eyeOpen.forEach(el => el.classList.remove('hidden'));
+                    eyeClosed.forEach(el => el.classList.add('hidden'));
+                } else {
+                    input.type = 'password';
+                    eyeOpen.forEach(el => el.classList.add('hidden'));
+                    eyeClosed.forEach(el => el.classList.remove('hidden'));
+                }
+            });
+        });
+    }
+
     static {
         document.addEventListener('DOMContentLoaded', () => {
             UI.init();
         });
     }
-} 
+}
