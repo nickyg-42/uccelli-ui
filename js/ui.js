@@ -973,6 +973,36 @@ class UI {
                 : `${weekday}, ${month} ${day} at ${time}`;
         };
 
+        var eventAttendance = [];
+        try {
+            eventAttendance = await EventsManager.getEventAttendance(event.id) || [];
+        } catch (error) {
+            console.error('Error fetching event attendance:', error);
+        }
+
+        const currentUserAttendanceRecord = eventAttendance.find(
+            record => record.user_id === userSession.userId
+        );
+
+        const currentUserAttendance = currentUserAttendanceRecord ? currentUserAttendanceRecord.status : '';
+
+        // Filter attendees by status and get their info
+        const goingAttendees = await Promise.all(
+            eventAttendance
+            .filter(record => record.status === 'going')
+            .map(async record => await UsersManager.getUserInfo(record.user_id) || {})
+        );
+
+        // Filter attendees by status and get their info
+        const notGoingAttendees = await Promise.all(
+            eventAttendance
+            .filter(record => record.status === 'not-going')
+            .map(async record => await UsersManager.getUserInfo(record.user_id) || {})
+        );
+
+        var goingCount = goingAttendees.length;
+        var notGoingCount = notGoingAttendees.length;
+
         return `
             <div class="event-card" data-event-id="${event.id}">
                 <div class="event-header">
@@ -990,35 +1020,59 @@ class UI {
                     }
                 </div>
 
-                <!-- Reactions Row -->
-                <div class="event-reactions">
-                    <button class="reaction-btn" data-reaction="love" onclick="UI.reactToEvent(${userSession.userId}, 'love', ${event.id})">
-                        <span role="img" aria-label="heart">
-                            <img id="love-icon" src=${currentUserReaction.reaction === "love" ? "assets/icons/heart_filled.png" : "assets/icons/heart.png"} alt="heart" class="reaction-icon">
+                <div class="attendance-section">
+                    <div class="attendance-buttons">
+                        <button class="attendance-btn ${currentUserAttendance === 'going' ? 'active' : ''}" 
+                                data-attendance="going" 
+                                onclick="UI.updateAttendance(${event.id}, 'going', '${currentUserAttendance}')">
+                            <svg class="attendance-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Going
+                        </button>
+                        <button class="attendance-btn ${currentUserAttendance === 'not-going' ? 'active' : ''}"
+                                data-attendance="not-going"
+                                onclick="UI.updateAttendance(${event.id}, 'not-going', '${currentUserAttendance}')">
+                            <svg class="attendance-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            Not Going
+                        </button>
+                    </div>
+                    
+                    <button class="attendance-list-toggle" onclick="UI.toggleAttendanceList(${event.id})">
+                        <span class="attendance-count">
+                            <span class="going-count">${goingCount}</span> going
+                            · <span class="not-going-count">${notGoingCount}</span> not going
                         </span>
-                        <span class="reaction-count">${loveCount}</span>
+                        <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
                     </button>
 
-                    <button class="reaction-btn" data-reaction="dislike" onclick="UI.reactToEvent(${userSession.userId}, 'dislike', ${event.id})">
-                        <span role="img" aria-label="dislike">
-                            <img id="dislike-icon" src=${currentUserReaction.reaction === "dislike" ? "assets/icons/thumbs-down_filled.png" : "assets/icons/thumbs-down.png"} alt="dislike" class="reaction-icon">
-                        </span>
-                        <span class="reaction-count">${dislikeCount}</span>
-                    </button>
-
-                    <button class="reaction-btn" data-reaction="celebrate" onclick="UI.reactToEvent(${userSession.userId}, 'celebrate', ${event.id})">
-                        <span role="img" aria-label="celebrate">
-                            <img id="celebrate-icon" src=${currentUserReaction.reaction === "celebrate" ? "assets/icons/party-horn_filled.png" : "assets/icons/party-horn.png"} alt="celebrate" class="reaction-icon">
-                        </span>
-                        <span class="reaction-count">${celebrateCount}</span>
-                    </button>
-
-                    <button class="reaction-btn" data-reaction="laugh" onclick="UI.reactToEvent(${userSession.userId}, 'laugh', ${event.id})">
-                        <span role="img" aria-label="laugh">
-                            <img id="laugh-icon" src=${currentUserReaction.reaction === "laugh" ? "assets/icons/laugh-squint_filled.png" : "assets/icons/laugh-squint.png"} alt="laugh" class="reaction-icon">
-                        </span>
-                        <span class="reaction-count">${laughCount}</span>
-                    </button>
+                    <div id="attendanceList-${event.id}" class="attendance-list hidden">
+                        <div class="attendance-category">
+                            <h4>Going (${goingCount})</h4>
+                            <div class="attendee-avatars going-list">
+                                ${goingAttendees.map(user => `
+                                    <div class="attendee-avatar" title="${user.first_name} ${user.last_name}">
+                                        ${user.first_name.charAt(0).toUpperCase()}${user.last_name.charAt(0).toUpperCase()}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="attendance-category">
+                            <h4>Not Going (${notGoingCount})</h4>
+                            <div class="attendee-avatars not-going-list">
+                                ${notGoingAttendees.map(user => `
+                                    <div class="attendee-avatar not-going" title="${user.first_name} ${user.last_name}">
+                                        ${user.first_name.charAt(0).toUpperCase()}${user.last_name.charAt(0).toUpperCase()}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -1691,6 +1745,44 @@ class UI {
                 }
             });
         });
+    }
+
+    static async updateAttendance(eventId, status, currentUserAttendance) {
+        // Don't update if no change
+        if (currentUserAttendance !== '' && currentUserAttendance === status) {
+            status = '';
+        }
+        try {
+            const userSession = Auth.getUserSession();
+            const attendance = {
+                event_id: eventId,
+                user_id: userSession.userId,
+                status: status
+            };
+            
+            await EventsManager.updateAttendance(attendance);
+            
+            // Refresh the event card
+            const groupId = new URLSearchParams(window.location.search).get('groupId');
+            await this.loadGroupEvents(groupId);
+        } catch (error) {
+            console.error('Failed to update attendance:', error);
+            alert('Failed to update attendance status');
+        }
+    }
+
+    static toggleAttendanceList(eventId) {
+        const list = document.getElementById(`attendanceList-${eventId}`);
+        const toggle = list.previousElementSibling;
+        const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+        
+        if (isExpanded) {
+            list.classList.add('hidden');
+            toggle.setAttribute('aria-expanded', 'false');
+        } else {
+            list.classList.remove('hidden');
+            toggle.setAttribute('aria-expanded', 'true');
+        }
     }
 
     static {

@@ -48,4 +48,15 @@ class EventsManager {
             method: 'DELETE',
         });
     }
+
+    static async updateAttendance(attendanceData) {
+        return API.fetch('/event/attendance', {
+            method: 'POST',
+            body: JSON.stringify(attendanceData)
+        });
+    }
+
+    static async getEventAttendance(eventId) {
+        return API.fetch(`/event/${eventId}/attendance`);
+    }
 }
