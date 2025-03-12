@@ -820,13 +820,14 @@ class UI {
         document.getElementById('addEventForm').reset();
     }
 
-    static showEventInfoModal(event) {
+    static async showEventInfoModal(event) {
         const modal = document.getElementById('eventInfoModal');
         modal.classList.remove('hidden');
-
+    
         // Populate event info
         document.getElementById('eventInfoTitle').textContent = event.title;
-
+    
+        // Format date/time display
         let dateTimeHTML = '';
         const startDate = event.start.toLocaleDateString(undefined, {
             weekday: 'long',
@@ -863,13 +864,54 @@ class UI {
                 }
             }
         }
-                                
+        
         document.getElementById('eventInfoDateTime').innerHTML = dateTimeHTML;
         
         // Set description
         const description = event.extendedProps.description || 'No description provided';
         document.getElementById('eventInfoDescription').textContent = description;
+    
+        // Fetch and display attendance
+        try {
+            const attendance = await EventsManager.getEventAttendance(event.id) || [];
+            
+            // Get attendees lists
+            const goingAttendees = await Promise.all(
+                attendance
+                    .filter(record => record.status === 'going')
+                    .map(async record => await UsersManager.getUserInfo(record.user_id))
+            );
+    
+            const notGoingAttendees = await Promise.all(
+                attendance
+                    .filter(record => record.status === 'not-going')
+                    .map(async record => await UsersManager.getUserInfo(record.user_id))
+            );
+    
+            // Update attendance counts
+            document.getElementById('eventInfoGoingCount').textContent = `Going (${goingAttendees.length})`;
+            document.getElementById('eventInfoNotGoingCount').textContent = `Not Going (${notGoingAttendees.length})`;
+    
+            // Populate going list
+            document.getElementById('eventInfoGoingList').innerHTML = goingAttendees.map(user => `
+                <div class="attendee-avatar" title="${user.first_name} ${user.last_name}">
+                    ${user.first_name.charAt(0).toUpperCase()}${user.last_name.charAt(0).toUpperCase()}
+                </div>
+            `).join('');
+    
+            // Populate not going list
+            document.getElementById('eventInfoNotGoingList').innerHTML = notGoingAttendees.map(user => `
+                <div class="attendee-avatar not-going" title="${user.first_name} ${user.last_name}">
+                    ${user.first_name.charAt(0).toUpperCase()}${user.last_name.charAt(0).toUpperCase()}
+                </div>
+            `).join('');
+    
+        } catch (error) {
+            console.error('Error fetching attendance:', error);
+            document.getElementById('eventInfoAttendance').innerHTML = '<p class="error-message">Failed to load attendance information</p>';
+        }
     }
+    
 
     static hideEventInfoModal() {
         const modal = document.getElementById('eventInfoModal');
