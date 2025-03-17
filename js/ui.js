@@ -735,12 +735,12 @@ class UI {
 
             const name = document.getElementById('eventName').value;
             const description = document.getElementById('eventDescription').value;
+            const location = document.getElementById('eventLocation').value;
             const startDate = document.getElementById('eventStartDate').value;
             const endDate = document.getElementById('eventEndDate').value;
             const startTime = document.getElementById('eventStartTime').value || '00:00';
             const endTime = document.getElementById('eventEndTime').value || '23:59';
 
-            // Set default times if not provided
             const startDateTime = startTime 
                 ? new Date(`${startDate}T${startTime}:00`) 
                 : new Date(`${startDate}T00:00:00`);
@@ -756,12 +756,10 @@ class UI {
                     : new Date(`${endDate}T23:59:59`);
             }
 
-            // const startDateTime = new Date(`${startDate}T${startTime}`);
-            // const endDateTime = new Date(`${endDate}T${endTime}`);
-
             const eventData = {
                 name,
                 description,
+                location: location || null,  // Include location if provided
                 start_time: startDateTime.toISOString(),
                 end_time: endDateTime.toISOString(),
                 group_id: parseInt(groupId),
@@ -1053,6 +1051,15 @@ class UI {
                 </div>
                 <p class="event-creator">Author: ${creatorName}</p>
                 <p class="event-card-description">${event.description}</p>
+                ${event.location ? `
+                    <p class="event-location">
+                        <svg class="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 21s-8-4.5-8-11a8 8 0 1 1 16 0c0 6.5-8 11-8 11z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        ${event.location}
+                    </p>
+                ` : ''}
                 <div class="event-times">
                     <span>${formatDate(startDate)}</span>
                     ${
