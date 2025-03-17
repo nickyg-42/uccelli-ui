@@ -825,6 +825,15 @@ class UI {
         // Populate event info
         document.getElementById('eventInfoTitle').textContent = event.title;
     
+        // Handle location if it exists
+        const locationSection = document.getElementById('eventInfoLocationSection');
+        if (event.extendedProps.location) {
+            locationSection.classList.remove('hidden');
+            document.getElementById('eventInfoLocationText').textContent = event.extendedProps.location;
+        } else {
+            locationSection.classList.add('hidden');
+        }
+    
         // Format date/time display
         let dateTimeHTML = '';
         const startDate = event.start.toLocaleDateString(undefined, {
@@ -1324,7 +1333,8 @@ class UI {
                                         title: event.name,
                                         start: event.start_time,
                                         end: event.end_time,
-                                        description: event.description
+                                        description: event.description,
+                                        location: event.location // Add this line
                                     }));
                                     successCallback(formattedEvents);
                                 } catch (error) {
