@@ -437,9 +437,10 @@ main {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     display: none;
-    justify-content: center;
+    justify-content: flex-start; /* Change from center to flex-start */
     align-items: center;
     z-index: 1000;
+    overflow-y: auto; /* Add scroll to modal */
 }
 
 .modal:not(.hidden) {
@@ -453,6 +454,36 @@ main {
     max-width: 500px;
     width: 90%;
     box-shadow: 0 4px 12px var(--shadow);
+    margin: auto; /* Center horizontally */
+    margin-top: 2rem; /* Add some space at the top */
+    margin-bottom: 2rem; /* Add some space at the bottom */
+    position: relative; /* Ensure modal stays above overlay */
+}
+
+/* Add mobile-specific styles */
+@media (max-width: 768px) {
+    .modal {
+        align-items: flex-start; /* Align to top on mobile */
+    }
+    
+    .modal-content {
+        margin-top: 1rem; /* Less space at top on mobile */
+        margin-bottom: 1rem; /* Less space at bottom on mobile */
+        padding: 1.5rem; /* Slightly less padding on mobile */
+        width: 95%; /* Wider on mobile */
+    }
+
+    /* Make form elements more compact on mobile */
+    .form-group {
+        margin-bottom: 0.75rem;
+    }
+
+    .modal-content input,
+    .modal-content textarea,
+    .modal-content select {
+        padding: 0.6rem;
+        margin-bottom: 0.75rem;
+    }
 }
 
 .modal-buttons {
