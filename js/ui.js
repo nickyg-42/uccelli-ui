@@ -760,8 +760,8 @@ class UI {
                 name,
                 description,
                 location: location || null,  // Include location if provided
-                start_time: startDateTime.toISOString(),
-                end_time: endDateTime.toISOString(),
+                start_time: startDateTime.toISOString().split('.')[0] + 'Z',
+                end_time: endDateTime.toISOString().split('.')[0] + 'Z',
                 group_id: parseInt(groupId),
                 created_by_id: parseInt(userSession.userId)
             };
@@ -966,15 +966,24 @@ class UI {
         const userSession = Auth.getUserSession();
         
         // Show delete button if user created the event or is an admin
-        const canDelete = userSession && (
+        const canEditOrDelete = userSession && (
             event.created_by_id === userSession.userId || 
             userSession.role === 'super_admin' ||
             (this.currentGroupId && userSession.adminGroups && 
              userSession.adminGroups.includes(parseInt(this.currentGroupId)))
         );
         
-        const deleteButton = canDelete 
+        const deleteButton = canEditOrDelete 
             ? `<button class="delete-event-btn" onclick="UI.deleteEvent(${event.id})">&times;</button>`
+            : '';
+
+        const editButton = canEditOrDelete
+            ? `<button class="edit-event-btn" onclick="UI.showEditEventModal(${event.id})" aria-label="Edit event">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+            </button>`
             : '';
 
         // Fetch creator's information
@@ -1056,7 +1065,10 @@ class UI {
             <div class="event-card" data-event-id="${event.id}">
                 <div class="event-header">
                     <h3>${event.name}</h3>
-                    ${deleteButton}
+                    <div class="event-controls">
+                        ${editButton}
+                        ${deleteButton}
+                    </div>
                 </div>
                 <p class="event-creator">Author: ${creatorName}</p>
                 <p class="event-card-description">${event.description}</p>
@@ -1269,6 +1281,117 @@ class UI {
             console.error('Failed to delete event:', error);
             alert('Failed to delete event. Please try again.');
         }
+    }
+
+    static async showEditEventModal(eventId) {
+        try {
+            const event = await EventsManager.getEvent(eventId);
+            const modal = document.getElementById('editEventModal');
+            const form = document.getElementById('editEventForm');
+            
+            // Store original UTC values for comparison
+            form.dataset.originalName = event.name;
+            form.dataset.originalDescription = event.description || '';
+            form.dataset.originalLocation = event.location || '';
+            form.dataset.originalStartTime = event.start_time;
+            form.dataset.originalEndTime = event.end_time;
+            
+            // Populate form fields
+            document.getElementById('editEventId').value = event.id;
+            document.getElementById('editEventName').value = event.name;
+            document.getElementById('editEventDescription').value = event.description || '';
+            document.getElementById('editEventLocation').value = event.location || '';
+            
+            // Convert UTC dates to local time for display
+            const startDate = new Date(event.start_time);
+            const endDate = new Date(event.end_time);
+            
+            // Format local dates for input fields
+            document.getElementById('editEventStartDate').value = startDate.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+            document.getElementById('editEventStartTime').value = startDate.toLocaleTimeString('en-GB').slice(0, 5); // HH:mm format
+            document.getElementById('editEventEndDate').value = endDate.toLocaleDateString('en-CA');
+            document.getElementById('editEventEndTime').value = endDate.toLocaleTimeString('en-GB').slice(0, 5);
+
+            // Show modal
+            modal.classList.remove('hidden');
+
+            // Handle form submission
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                
+                const updatedFields = {};
+                const form = e.target;
+                
+                // Check which fields have changed
+                if (form.editEventName.value !== form.dataset.originalName) {
+                    updatedFields.name = form.editEventName.value;
+                }
+                if (form.editEventDescription.value !== form.dataset.originalDescription) {
+                    updatedFields.description = form.editEventDescription.value;
+                }
+                if (form.editEventLocation.value !== form.dataset.originalLocation) {
+                    updatedFields.location = form.editEventLocation.value;
+                }
+                
+                // Create dates in local time and convert to UTC for storage
+                const newStartDateTime = new Date(`${form.editEventStartDate.value}T${form.editEventStartTime.value}`);
+                const newEndDateTime = new Date(`${form.editEventEndDate.value}T${form.editEventEndTime.value}`);
+                
+                // Compare UTC timestamps without milliseconds
+                const formatUTC = (date) => date.toISOString().split('.')[0] + 'Z';
+                
+                if (formatUTC(newStartDateTime) !== form.dataset.originalStartTime) {
+                    updatedFields.start_time = formatUTC(newStartDateTime);
+                }
+                if (formatUTC(newEndDateTime) !== form.dataset.originalEndTime) {
+                    updatedFields.end_time = formatUTC(newEndDateTime);
+                }
+                
+                // Validate that at least one field has changed
+                if (Object.keys(updatedFields).length === 0) {
+                    alert('Please modify at least one field to update the event.');
+                    return;
+                }
+                
+                try {
+                    await EventsManager.updateEvent(updatedFields, eventId);
+                    this.hideEditEventModal();
+
+                    // Get current group ID from URL
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const groupId = urlParams.get('groupId');
+                    await this.loadGroupEvents(groupId);
+                } catch (error) {
+                    console.error('Error updating event:', error);
+                    alert('Failed to update event: ' + error.message);
+                }
+            };
+
+            const handleClose = () => {
+                this.hideEditEventModal();
+                form.removeEventListener('submit', handleSubmit);
+                closeBtn.removeEventListener('click', handleClose);
+                cancelBtn.removeEventListener('click', handleClose);
+            };
+
+            // Handle close button
+            const closeBtn = document.getElementById('closeEditEventModal');
+            const cancelBtn = document.getElementById('cancelEditEventModal');
+
+            form.addEventListener('submit', handleSubmit);
+            closeBtn.addEventListener('click', handleClose);
+            cancelBtn.addEventListener('click', handleClose);
+        } catch (error) {
+            console.error('Error showing edit event modal:', error);
+            alert('Failed to load event details');
+        }
+    }
+
+    static hideEditEventModal() {
+        const modal = document.getElementById('editEventModal');
+        const form = document.getElementById('editEventForm');
+        modal.classList.add('hidden');
+        form.reset();
     }
 
     static setupViewToggle() {

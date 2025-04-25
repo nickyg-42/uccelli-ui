@@ -36,10 +36,10 @@ class EventsManager {
         });
     }
 
-    static async updateEvent(id, field, value) {
-        return API.fetch(`/event/${id}/${field}`, {
+    static async updateEvent(eventData, id) {
+        return API.fetch(`/event/${id}`, {
             method: 'PATCH',
-            body: JSON.stringify({ value }),
+            body: JSON.stringify(eventData),
         });
     }
 

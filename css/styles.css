@@ -1355,3 +1355,49 @@ input:checked + .slider:before {
         font-size: 0.7rem;
     }
 }
+
+/* Event Controls */
+.event-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.edit-event-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.edit-event-btn:hover {
+    opacity: 1;
+}
+
+.edit-event-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+#editEventForm .form-group {
+    margin-bottom: 1rem;
+}
+
+#editEventForm textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+#editEventForm .time-group {
+    display: flex;
+    gap: 1rem;
+}
+
+#editEventForm input[type="time"] {
+    width: auto;
+}

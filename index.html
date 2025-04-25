@@ -344,6 +344,45 @@
             </div>
         </div>
 
+        <!-- Edit Event Modal -->
+        <div id="editEventModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Edit Event</h2>
+                    <button type="button" class="close-button" id="closeEditEventModal">&times;</button>
+                </div>
+                <form id="editEventForm">
+                    <input type="hidden" id="editEventId">
+                    <div class="form-group">
+                        <label for="editEventName">Name</label>
+                        <input type="text" id="editEventName">
+                    </div>
+                    <div class="form-group">
+                        <label for="editEventDescription">Description</label>
+                        <textarea id="editEventDescription"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEventLocation">Location</label>
+                        <input type="text" id="editEventLocation">
+                    </div>
+                    <div class="form-group">
+                        <label for="editEventStartDate">Start Date</label>
+                        <input type="date" id="editEventStartDate">
+                        <input type="time" id="editEventStartTime" step="60">
+                    </div>
+                    <div class="form-group">
+                        <label for="editEventEndDate">End Date</label>
+                        <input type="date" id="editEventEndDate">
+                        <input type="time" id="editEventEndTime" step="60">
+                    </div>
+                    <div class="modal-buttons">
+                        <button type="submit" class="primary-button">Save Changes</button>
+                        <button type="button" class="secondary-button" id="cancelEditEventModal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Join Group Modal -->
         <div id="joinGroupModal" class="modal hidden">
             <div class="modal-content">
